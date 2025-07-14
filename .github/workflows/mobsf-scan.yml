@@ -34,7 +34,11 @@ jobs:
     - name: Create sample APK
       run: |
         mkdir -p sample-apps
-        curl -L -o sample-apps/test.apk "https://github.com/sushi2k/InsecureBankv2/releases/download/2.2.1/InsecureBankv2.apk"
+        # Download a known working APK
+        wget -O sample-apps/test.apk "https://f-droid.org/repo/org.fdroid.fdroid_1013050.apk"
+        # Verify it's a valid APK
+        file sample-apps/test.apk
+        head -c 4 sample-apps/test.apk | xxd
     
     - name: Scan APK files
       run: |
