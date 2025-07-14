@@ -1,0 +1,11 @@
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+reports/
+uploads/
+sample-apps/
+.env
+*.apk
+*.ipa

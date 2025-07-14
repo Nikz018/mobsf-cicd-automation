@@ -1,0 +1,57 @@
+name: MobSF Security Scan
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    
+    - name: Install dependencies
+      run: |
+        pip install requests
+    
+    - name: Start MobSF
+      run: |
+        docker compose -f docker/docker-compose.yml up -d
+        sleep 30
+    
+    - name: Wait for MobSF
+      run: |
+        timeout 60 bash -c 'until curl -f http://localhost:8000; do sleep 2; done'
+    
+    - name: Create sample APK
+      run: |
+        mkdir -p sample-apps
+        curl -L -o sample-apps/test.apk "https://github.com/MobSF/Mobile-Security-Framework-MobSF/raw/master/tests/files/android_source/diva-beta.apk"
+    
+    - name: Scan APK files
+      env:
+        MOBSF_API_KEY: ${{ secrets.MOBSF_API_KEY }}
+      run: |
+        for apk in sample-apps/*.apk; do
+          if [ -f "$apk" ]; then
+            python scripts/mobsf_scanner.py --app "$apk"
+          fi
+        done
+    
+    - name: Upload Reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: security-reports
+        path: reports/
+    
+    - name: Stop MobSF
+      if: always()
+      run: docker compose -f docker/docker-compose.yml down

@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  mobsf:
+    image: opensecurity/mobile-security-framework-mobsf:latest
+    container_name: mobsf-scanner
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./uploads:/home/mobsf/uploads
+      - ./reports:/home/mobsf/reports
+    restart: unless-stopped
