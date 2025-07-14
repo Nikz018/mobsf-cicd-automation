@@ -71,6 +71,8 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
     
-    api_key = os.getenv('MOBSF_API_KEY', '7f4e86b726494d1bf1c8f2b958e8be244fc46eba94c1cb3fb3b09cc8d7b16797')
+    api_key = os.getenv('MOBSF_API_KEY')
+    if not api_key:
+        print("Warning: No API key found, trying without authentication")
     scanner = MobSFScanner(args.server, api_key)
     scanner.scan_app(args.app, args.output)
