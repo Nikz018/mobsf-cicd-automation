@@ -39,10 +39,10 @@ class MobSFScanner:
             return response.json()
         else:
             # Check if PDF response is valid
-            if response.content.startswith(b'%PDF'):
+            if response.content.startswith(b'%PDF') and len(response.content) > 1000:
                 return response.content
             else:
-                print(f"Invalid PDF response: {response.text[:200]}")
+                print(f"Invalid PDF response (length: {len(response.content)}): {response.text[:200]}")
                 return None
 
     def scan_app(self, app_path, output_dir='reports'):
@@ -60,26 +60,48 @@ class MobSFScanner:
         
         print("Generating reports...")
         json_report = self.get_report(hash_value, 'json')
-        pdf_report = self.get_report(hash_value, 'pdf')
         
         os.makedirs(output_dir, exist_ok=True)
         
-        json_path = f"{output_dir}/{Path(app_path).stem}_report.json"
-        
         if json_report:
+            json_path = f"{output_dir}/{Path(app_path).stem}_report.json"
             with open(json_path, 'w') as f:
                 json.dump(json_report, f, indent=2)
             print(f"JSON report saved: {json_path}")
+            
+            # Create a summary report
+            summary_path = f"{output_dir}/{Path(app_path).stem}_summary.txt"
+            self.create_summary_report(json_report, summary_path)
+            print(f"Summary report saved: {summary_path}")
         
-        if pdf_report:
-            pdf_path = f"{output_dir}/{Path(app_path).stem}_report.pdf"
-            with open(pdf_path, 'wb') as f:
-                f.write(pdf_report)
-            print(f"PDF report saved: {pdf_path}")
-        else:
-            print("PDF report generation failed - skipping PDF")
+        # Generate PDF report (mandatory)
+        print("Generating PDF report...")
+        pdf_report = self.get_report(hash_value, 'pdf')
+        if not pdf_report:
+            raise Exception("PDF report generation failed - this is mandatory")
+        
+        pdf_path = f"{output_dir}/{Path(app_path).stem}_report.pdf"
+        with open(pdf_path, 'wb') as f:
+            f.write(pdf_report)
+        print(f"PDF report saved: {pdf_path}")
         
         return json_report
+    
+    def create_summary_report(self, json_report, output_path):
+        """Create a human-readable summary report"""
+        with open(output_path, 'w') as f:
+            f.write("=== MobSF Security Scan Summary ===\n\n")
+            
+            if 'file_name' in json_report:
+                f.write(f"App: {json_report['file_name']}\n")
+            if 'app_name' in json_report:
+                f.write(f"App Name: {json_report['app_name']}\n")
+            if 'package_name' in json_report:
+                f.write(f"Package: {json_report['package_name']}\n")
+            
+            f.write("\n=== Security Summary ===\n")
+            f.write(f"Total Issues Found: {len(str(json_report))} characters of data\n")
+            f.write("\nFull details available in JSON report.\n")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='MobSF Security Scanner')
