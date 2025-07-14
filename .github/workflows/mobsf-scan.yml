@@ -34,7 +34,7 @@ jobs:
     - name: Create sample APK
       run: |
         mkdir -p sample-apps
-        curl -L -o sample-apps/test.apk "https://github.com/MobSF/Mobile-Security-Framework-MobSF/raw/master/tests/files/android_source/diva-beta.apk"
+        curl -L -o sample-apps/test.apk "https://github.com/sushi2k/InsecureBankv2/releases/download/2.2.1/InsecureBankv2.apk"
     
     - name: Scan APK files
       run: |
