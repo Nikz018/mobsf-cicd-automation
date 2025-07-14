@@ -23,7 +23,7 @@ class MobSFScanner:
 
     def start_scan(self, file_name, hash_value):
         url = f"{self.server_url}/api/v1/scan"
-        data = {'file_name': file_name, 'hash': hash_value}
+        data = {'hash': hash_value}
         response = requests.post(url, data=data, headers=self.headers)
         return response.json()
 
@@ -38,9 +38,10 @@ class MobSFScanner:
                 return None
             return response.json()
         else:
-            # Use web interface for PDF generation
-            url = f"{self.server_url}/PDF/?md5={hash_value}"
-            response = requests.get(url, headers=self.headers)
+            # Use correct PDF download endpoint
+            url = f"{self.server_url}/api/v1/download_pdf"
+            data = {'hash': hash_value}
+            response = requests.post(url, data=data, headers=self.headers)
             
             if response.status_code != 200:
                 print(f"PDF generation failed: {response.status_code}")
