@@ -27,22 +27,29 @@ class MobSFScanner:
         return response.json()
 
     def get_report(self, hash_value, report_type='json'):
-        url = f"{self.server_url}/api/v1/report_{report_type}"
-        data = {'hash': hash_value}
-        response = requests.post(url, data=data, headers=self.headers)
-        
-        if response.status_code != 200:
-            print(f"Report generation failed: {response.status_code} - {response.text}")
-            return None
-            
         if report_type == 'json':
+            url = f"{self.server_url}/api/v1/report_json"
+            data = {'hash': hash_value}
+            response = requests.post(url, data=data, headers=self.headers)
+            
+            if response.status_code != 200:
+                print(f"JSON report generation failed: {response.status_code}")
+                return None
             return response.json()
         else:
+            # Use web interface for PDF generation
+            url = f"{self.server_url}/PDF/?md5={hash_value}"
+            response = requests.get(url, headers=self.headers)
+            
+            if response.status_code != 200:
+                print(f"PDF generation failed: {response.status_code}")
+                return None
+                
             # Check if PDF response is valid
             if response.content.startswith(b'%PDF') and len(response.content) > 1000:
                 return response.content
             else:
-                print(f"Invalid PDF response (length: {len(response.content)}): {response.text[:200]}")
+                print(f"Invalid PDF response (length: {len(response.content)})")
                 return None
 
     def scan_app(self, app_path, output_dir='reports'):
