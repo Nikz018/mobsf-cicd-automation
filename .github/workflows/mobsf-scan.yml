@@ -39,10 +39,14 @@ jobs:
     - name: Get MobSF API Key
       run: |
         API_KEY=$(docker logs mobsf-scanner 2>&1 | grep "REST API Key:" | cut -d' ' -f4)
-        echo "MOBSF_API_KEY=$API_KEY" >> $GITHUB_ENV
+        echo "MOBSF_API_KEY=${API_KEY}" >> $GITHUB_ENV
+        echo "API Key extracted: ${API_KEY}"
     
     - name: Scan APK files
+      env:
+        MOBSF_API_KEY: ${{ env.MOBSF_API_KEY }}
       run: |
+        echo "Using API Key: $MOBSF_API_KEY"
         for apk in sample-apps/*.apk; do
           if [ -f "$apk" ]; then
             python scripts/mobsf_scanner.py --app "$apk"
