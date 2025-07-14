@@ -36,17 +36,11 @@ jobs:
         mkdir -p sample-apps
         curl -L -o sample-apps/test.apk "https://github.com/MobSF/Mobile-Security-Framework-MobSF/raw/master/tests/files/android_source/diva-beta.apk"
     
-    - name: Get MobSF API Key
+    - name: Scan APK files
       run: |
         API_KEY=$(docker logs mobsf-scanner 2>&1 | grep "REST API Key:" | cut -d' ' -f4)
-        echo "MOBSF_API_KEY=${API_KEY}" >> $GITHUB_ENV
-        echo "API Key extracted: ${API_KEY}"
-    
-    - name: Scan APK files
-      env:
-        MOBSF_API_KEY: ${{ env.MOBSF_API_KEY }}
-      run: |
-        echo "Using API Key: $MOBSF_API_KEY"
+        echo "Using API Key: $API_KEY"
+        export MOBSF_API_KEY="$API_KEY"
         for apk in sample-apps/*.apk; do
           if [ -f "$apk" ]; then
             python scripts/mobsf_scanner.py --app "$apk"
