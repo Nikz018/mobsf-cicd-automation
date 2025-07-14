@@ -7,6 +7,10 @@ services:
     ports:
       - "8000:8000"
     volumes:
+      - mobsf_persistent_data:/home/mobsf/.MobSF
       - ./uploads:/home/mobsf/uploads
       - ./reports:/home/mobsf/reports
     restart: unless-stopped
+
+volumes:
+  mobsf_persistent_data:
