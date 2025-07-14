@@ -3,6 +3,7 @@ import requests
 import argparse
 import json
 import os
+import time
 from pathlib import Path
 
 class MobSFScanner:
@@ -56,6 +57,7 @@ class MobSFScanner:
         print(f"Uploading {app_path}...")
         upload_result = self.upload_file(app_path)
         
+        print(f"Upload result: {upload_result}")
         if 'hash' not in upload_result:
             raise Exception(f"Upload failed: {upload_result}")
         
@@ -64,6 +66,14 @@ class MobSFScanner:
         
         print(f"Starting scan for {file_name}...")
         scan_result = self.start_scan(file_name, hash_value)
+        print(f"Scan result: {scan_result}")
+        
+        if 'error' in scan_result:
+            raise Exception(f"Scan failed: {scan_result['error']}")
+        
+        # Wait for scan to complete
+        print("Waiting for scan to complete...")
+        time.sleep(10)
         
         print("Generating reports...")
         json_report = self.get_report(hash_value, 'json')
