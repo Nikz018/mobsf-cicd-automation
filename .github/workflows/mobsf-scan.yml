@@ -38,7 +38,7 @@ jobs:
     
     - name: Scan APK files
       run: |
-        API_KEY=$(docker logs mobsf-scanner 2>&1 | grep "REST API Key:" | cut -d' ' -f4)
+        API_KEY=$(docker logs mobsf-scanner 2>&1 | grep "REST API Key:" | head -1 | cut -d' ' -f4 | tr -d '\033\[0-9;]*m' | tr -d '\n\r')
         echo "Using API Key: $API_KEY"
         export MOBSF_API_KEY="$API_KEY"
         for apk in sample-apps/*.apk; do
