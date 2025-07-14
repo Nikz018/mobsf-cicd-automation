@@ -30,7 +30,20 @@ class MobSFScanner:
         url = f"{self.server_url}/api/v1/report_{report_type}"
         data = {'hash': hash_value}
         response = requests.post(url, data=data, headers=self.headers)
-        return response.json() if report_type == 'json' else response.content
+        
+        if response.status_code != 200:
+            print(f"Report generation failed: {response.status_code} - {response.text}")
+            return None
+            
+        if report_type == 'json':
+            return response.json()
+        else:
+            # Check if PDF response is valid
+            if response.content.startswith(b'%PDF'):
+                return response.content
+            else:
+                print(f"Invalid PDF response: {response.text[:200]}")
+                return None
 
     def scan_app(self, app_path, output_dir='reports'):
         print(f"Uploading {app_path}...")
@@ -52,15 +65,20 @@ class MobSFScanner:
         os.makedirs(output_dir, exist_ok=True)
         
         json_path = f"{output_dir}/{Path(app_path).stem}_report.json"
-        pdf_path = f"{output_dir}/{Path(app_path).stem}_report.pdf"
         
-        with open(json_path, 'w') as f:
-            json.dump(json_report, f, indent=2)
+        if json_report:
+            with open(json_path, 'w') as f:
+                json.dump(json_report, f, indent=2)
+            print(f"JSON report saved: {json_path}")
         
-        with open(pdf_path, 'wb') as f:
-            f.write(pdf_report)
+        if pdf_report:
+            pdf_path = f"{output_dir}/{Path(app_path).stem}_report.pdf"
+            with open(pdf_path, 'wb') as f:
+                f.write(pdf_report)
+            print(f"PDF report saved: {pdf_path}")
+        else:
+            print("PDF report generation failed - skipping PDF")
         
-        print(f"Reports saved: {json_path}, {pdf_path}")
         return json_report
 
 if __name__ == "__main__":
